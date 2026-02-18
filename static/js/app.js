@@ -673,6 +673,7 @@ function updatePositionDisplay(positionData) {
                     side: side.toUpperCase(),
                     price: positionData.position_entry_price ? positionData.position_entry_price[side] : 0,
                     qty: positionData.position_qty ? positionData.position_qty[side] : 0,
+                    upl: positionData.position_upl ? positionData.position_upl[side] : 0,
                     tp: positionData.current_take_profit ? positionData.current_take_profit[side] : 0,
                     sl: positionData.current_stop_loss ? positionData.current_stop_loss[side] : 0,
                     liq: positionData.position_liq ? positionData.position_liq[side] : 0
@@ -700,6 +701,8 @@ function updatePositionDisplay(positionData) {
                     <div class="col-6 small text-end">${safeFix4(pos.price)}</div>
                     <div class="col-6 small text-white-50">Quantity:</div>
                     <div class="col-6 small text-end">${safeFix4(pos.qty)}</div>
+                    <div class="col-6 small text-white-50">Unrealized PnL:</div>
+                    <div class="col-6 small text-end ${pos.upl >= 0 ? 'text-success' : 'text-danger'}">$${pos.upl.toFixed(2)}</div>
                     <div class="col-6 small text-white-50">Current TP:</div>
                     <div class="col-6 small text-end text-success">${safeFix4(pos.tp)}</div>
                     <div class="col-6 small text-white-50">Current SL:</div>

@@ -1,0 +1,30 @@
+2026-02-18 22:43:40,435 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+ * Serving Flask app 'app'
+ * Debug mode: off
+2026-02-18 22:43:40,444 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.2:5000
+2026-02-18 22:43:40,444 - INFO - [33mPress CTRL+C to quit[0m
+2026-02-18 22:43:41,041 - INFO - Product Info Updated for ETH-USDT-SWAP: ContractSize=0.1, LotSz=0.01
+2026-02-18 22:43:41,647 - INFO - Bot initialized and started (Mode: Passive)
+2026-02-18 22:43:42,457 - INFO - Websocket connected
+2026-02-18 22:43:42,460 - INFO - Websocket connected
+2026-02-18 22:43:42,681 - INFO - WebSocket Login Successful.
+2026-02-18 22:43:42,923 - INFO - Baseline initialized: Long=0.0, Short=4086.14 contracts (Manual positions ignored in used margin)
+2026-02-18 22:43:45,402 - INFO - 127.0.0.1 - - [18/Feb/2026 22:43:45] "GET /login HTTP/1.1" 200 -
+2026-02-18 22:44:06,087 - INFO - 127.0.0.1 - - [18/Feb/2026 22:44:06] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-02-18 22:44:06,106 - INFO - 127.0.0.1 - - [18/Feb/2026 22:44:06] "GET / HTTP/1.1" 200 -
+2026-02-18 22:44:06,134 - INFO - 127.0.0.1 - - [18/Feb/2026 22:44:06] "GET /static/js/app.js HTTP/1.1" 200 -
+2026-02-18 22:44:06,135 - INFO - 127.0.0.1 - - [18/Feb/2026 22:44:06] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-02-18 22:44:24,881 - INFO - 127.0.0.1 - - [18/Feb/2026 22:44:24] "GET /login HTTP/1.1" 200 -
+2026-02-18 22:44:26,034 - INFO - 127.0.0.1 - - [18/Feb/2026 22:44:26] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-02-18 22:44:26,038 - INFO - 127.0.0.1 - - [18/Feb/2026 22:44:26] "GET / HTTP/1.1" 200 -
+2026-02-18 22:44:26,054 - INFO - 127.0.0.1 - - [18/Feb/2026 22:44:26] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-02-18 22:44:26,067 - INFO - 127.0.0.1 - - [18/Feb/2026 22:44:26] "GET /static/js/app.js HTTP/1.1" 200 -
+2026-02-18 22:44:26,225 - INFO - 127.0.0.1 - - [18/Feb/2026 22:44:26] "GET /api/config HTTP/1.1" 200 -
+2026-02-18 22:44:26,230 - INFO - 127.0.0.1 - - [18/Feb/2026 22:44:26] "GET /api/status HTTP/1.1" 200 -
+2026-02-18 22:44:26,233 - INFO - Client connected: MSNHVdF-72D_hnX6AAAB
+2026-02-18 22:44:33,445 - INFO - Client disconnected
+2026-02-18 22:44:33,446 - INFO - 127.0.0.1 - - [18/Feb/2026 22:44:33] "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 200 -
+2026-02-18 22:44:45,821 - INFO - 127.0.0.1 - - [18/Feb/2026 22:44:45] "[32mGET /api/status HTTP/1.1[0m" 302 -

@@ -31,7 +31,6 @@ class TradingBotEngine:
         self.current_take_profit = {'long': 0.0, 'short': 0.0}
         self.current_stop_loss = {'long': 0.0, 'short': 0.0}
         self._should_update_tpsl = False
-        self.last_add_price = 0.0
         self.account_balance = 0.0
         self.total_equity = 0.0
         self.available_balance = 0.0
@@ -75,6 +74,8 @@ class TradingBotEngine:
     def cached_pos_notional(self): return self.position_manager.cached_pos_notional
     @property
     def cached_unrealized_pnl(self): return self.position_manager.cached_unrealized_pnl
+    @property
+    def position_upl(self): return self.position_manager.position_upl
     @property
     def open_trades(self): return self.order_manager.open_trades
     @property
@@ -291,6 +292,7 @@ class TradingBotEngine:
             'size_amount': self.size_amount,
             'net_profit': self.net_profit, 'in_position': self.in_position,
             'position_qty': self.position_qty, 'position_entry_price': self.position_entry_price,
+            'position_upl': self.position_upl,
             'position_liq': self.position_manager.position_liq,
             'daily_reports': self.daily_reports,
             'need_add_usdt': self.need_add_usdt_profit_target,
@@ -361,8 +363,8 @@ class TradingBotEngine:
             self.position_manager.reset_session_metrics()
             if old.get('symbol') != new_config.get('symbol'):
                 self.account_manager.fetch_product_info(new_config['symbol'])
-                self.auto_cal_manager.auto_add_step_count = 0
-                self.last_add_price = 0.0
+                self.auto_cal_manager.auto_add_step_count = {'long': 0, 'short': 0}
+                self.auto_cal_manager.last_add_price = {'long': 0.0, 'short': 0.0}
             self.ws_handler.restart()
         return {'success': True}
 

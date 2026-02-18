@@ -23,6 +23,7 @@ class PositionManager:
         self.position_liq = {'long': 0.0, 'short': 0.0}
         self.position_details = {'long': {}, 'short': {}}
         self.position_notional = {'long': 0.0, 'short': 0.0}
+        self.position_upl = {'long': 0.0, 'short': 0.0}
         self.session_baseline_qty = {'long': 0.0, 'short': 0.0}
         self.baseline_initialized = False
         self.cached_active_positions_count = 0
@@ -63,8 +64,10 @@ class PositionManager:
                         mkt_px = self.engine.latest_trade_price if self.engine.latest_trade_price else safe_float(pos.get('avgPx'))
                         side_notional = abs(qty_raw) * mkt_px * contract_size
                         self.position_notional[side_key] = side_notional
+                        upl = safe_float(pos.get('upl', '0'))
+                        self.position_upl[side_key] = upl
                         temp_pos_notional += side_notional
-                        temp_unrealized_pnl += safe_float(pos.get('upl', '0'))
+                        temp_unrealized_pnl += upl
                         temp_active_count += 1
 
                         # Session margin tracking (consistent whether running or stopped)
@@ -102,6 +105,7 @@ class PositionManager:
         self.position_qty[s] = 0.0
         self.position_entry_price[s] = 0.0
         self.position_notional[s] = 0.0
+        self.position_upl[s] = 0.0
         self.position_details[s] = {}
         self.engine.current_take_profit[s] = 0.0
         self.engine.current_stop_loss[s] = 0.0
@@ -118,11 +122,18 @@ class PositionManager:
             if self.in_position[side]:
                 qty = abs(self.position_qty[side])
                 entry = self.position_entry_price[side]
-                if side == 'long': temp_upl += (current_price - entry) * qty * contract_size
-                else: temp_upl += (entry - current_price) * qty * contract_size
+                upl = 0.0
+                if side == 'long': upl = (current_price - entry) * qty * contract_size
+                else: upl = (entry - current_price) * qty * contract_size
+
+                self.position_upl[side] = upl
+                temp_upl += upl
+
                 side_notional = qty * current_price * contract_size
                 self.position_notional[side] = side_notional
                 temp_notional += side_notional
+            else:
+                self.position_upl[side] = 0.0
         self.cached_unrealized_pnl = temp_upl
         self.cached_pos_notional = temp_notional
 
