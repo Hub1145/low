@@ -105,7 +105,16 @@ class TradingBotEngine:
         leverage = safe_float(self.config.get('leverage', 1), 1.0)
         return self.max_allowed_display * leverage
     @property
-    def net_profit(self): return self.cached_unrealized_pnl
+    def net_profit(self):
+        # Sum of net_pnl for all active positions (UPL - Fees - Cycle Losses)
+        total = 0.0
+        for side in ['long', 'short']:
+            if self.position_manager.in_position[side]:
+                upl = self.position_manager.position_upl.get(side, 0.0)
+                fees = self.position_manager.current_entry_fees.get(side, 0.0)
+                loss = self.position_manager.realized_loss_this_cycle.get(side, 0.0)
+                total += (upl - fees - loss)
+        return total
     @property
     def daily_reports(self): return self.account_manager.daily_reports
     @property
@@ -238,6 +247,7 @@ class TradingBotEngine:
         if 'data' in msg:
             channel = msg.get('arg', {}).get('channel', '')
             data = msg.get('data', [])
+            action = msg.get('action', '')
             if channel == 'tickers' and data:
                 price = safe_float(data[0].get('last'))
                 if price > 0:
@@ -248,7 +258,7 @@ class TradingBotEngine:
                         self.auto_cal_manager.check_auto_add()
                     self._emit_socket_updates(throttle=True)
             elif channel == 'positions' and data:
-                self.position_manager.process_positions(data)
+                self.position_manager.process_positions(data, is_snapshot=(action == 'snapshot'))
                 self._emit_socket_updates()
             elif channel == 'account' and data:
                 for d in data[0].get('details', []):

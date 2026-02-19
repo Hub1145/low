@@ -163,7 +163,9 @@ class WebSocketHandler:
 
     def _login_websocket(self):
         from handlers.utils import generate_okx_signature
-        timestamp = str(int(time.time()))
+        # Use adjusted time to match OKX server time for more reliable login
+        server_ts_ms = int(time.time() * 1000) + self.okx_client.server_time_offset
+        timestamp = str(int(server_ts_ms / 1000))
         signature = generate_okx_signature(self.okx_client.okx_api_secret, timestamp, "GET", "/users/self/verify")
         payload = {"op": "login", "args": [{"apiKey": self.okx_client.okx_api_key, "passphrase": self.okx_client.okx_passphrase, "timestamp": timestamp, "sign": signature}]}
         self.ws_private.send(json.dumps(payload))

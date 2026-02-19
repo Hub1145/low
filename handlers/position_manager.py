@@ -44,7 +44,7 @@ class PositionManager:
         contract_size = safe_float(self.engine.product_info.get('contractSize', 1.0))
 
         with self.engine.lock:
-            if not self.baseline_initialized:
+            if not self.baseline_initialized and is_snapshot:
                 # We initialize baseline from the first set of positions we receive,
                 # whether it's a REST snapshot or a WS snapshot.
                 for pos in positions_data:
@@ -85,6 +85,7 @@ class PositionManager:
                         if abs(new_qty - prev_qtys.get(side_key, 0.0)) > 1e-6:
                             if abs(new_qty) > abs(prev_qtys.get(side_key, 0.0)):
                                 self.engine.total_trades_count += 1
+                            self.engine.log(f"Position Update Detected: {side_key.upper()} Qty={new_qty} (Manual/Loop)", level="debug")
 
                         self.in_position[side_key] = True
                         self.position_entry_price[side_key] = safe_float(pos.get('avgPx'))
