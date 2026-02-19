@@ -63,31 +63,33 @@ class AutoCalManager:
                 cycle_loss = self.engine.position_manager.realized_loss_this_cycle.get(side, 0.0)
                 current_net_pnl = upl - entry_fees - cycle_loss
 
-                # Simplified formula to ensure Need Add is always positive when in loss/below target.
-                # We calculate V such that adding V and moving rec% covers the TARGET profit.
-                # V = (Target - CurrentNetPnL) / (rec - 2 * fee_pct)
+                # Corrected formula accounting for existing position recovery:
+                # TargetNetProfit = current_net_pnl + N*(rec - fee_pct) + V*(rec - 2*fee_pct)
+                # V = (TargetNetProfit - current_net_pnl - N*(rec - fee_pct)) / (rec - 2*fee_pct)
+
+                existing_recovery_gain = notional * (rec - fee_pct)
 
                 # Mode 1: Above Zero (Target Net PnL = 0)
-                v_zero = 0.0
-                if current_net_pnl < 0:
-                    v_zero = (-current_net_pnl) / gain_factor
+                target_zero = 0.0
+                v_zero = (target_zero - current_net_pnl - existing_recovery_gain) / gain_factor
+                if v_zero < 0: v_zero = 0.0
 
                 if v_zero > 0:
                     self.need_add_above_zero_per_side[side] = v_zero
                     self.need_add_usdt_above_zero += v_zero
 
-                self.engine.log(f"Auto-Cal Debug ({side.upper()}): NetPnL={current_net_pnl:.2f}, UPL={upl:.2f}, Fees={entry_fees:.2f}, Target0_Need={v_zero:.2f}", level="debug")
-
                 # Mode 2: Profit Target
                 # Target Net Profit = One-way fee * multiplier
                 target_net_profit = (notional * fee_pct) * mult
-                v_profit = (target_net_profit - current_net_pnl) / gain_factor
+                v_profit = (target_net_profit - current_net_pnl - existing_recovery_gain) / gain_factor
                 if v_profit < 0: v_profit = 0.0
 
                 if v_profit > 0:
                     self.need_add_profit_target_per_side[side] = v_profit
                     self.need_add_usdt_profit_target += v_profit
-                    self.engine.log(f"Auto-Cal Debug ({side.upper()}): TargetProfit={target_net_profit:.2f}, TargetProfit_Need={v_profit:.2f}", level="debug")
+
+                if self.engine.monitoring_tick % 10 == 0:
+                    self.engine.log(f"Auto-Cal Debug ({side.upper()}): NetPnL={current_net_pnl:.2f}, TargetProfit={target_net_profit:.2f}, RecGain={existing_recovery_gain:.2f}, Need0={v_zero:.2f}, NeedProfit={v_profit:.2f}", level="debug")
 
     def check_auto_exit(self, net_pnl, unrealized_pnl):
         notional = self.engine.cached_pos_notional

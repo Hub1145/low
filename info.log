@@ -31,3 +31,22 @@
 2026-02-19 09:30:58,263 - INFO - Auto-Cal Add Position: Bypassing budget and min-order restrictions.
 2026-02-19 09:30:58,263 - INFO - Placing Market sell order for 270.62 ETH-USDT-SWAP
 2026-02-19 09:31:11,446 - INFO - Baseline initialized: Long=0.0, Short=279.48 contracts
+2026-02-19 09:50:13,315 - WARNING - WebSocket Health Check Failed: No data for 60s. Forcing restart.
+2026-02-19 09:50:13,326 - INFO - Restarting WebSocket connections...
+2026-02-19 09:50:16,217 - INFO - Websocket connected
+2026-02-19 09:50:16,238 - INFO - Websocket connected
+2026-02-19 09:50:16,463 - INFO - WebSocket Login Successful.
+2026-02-19 09:51:03,089 - INFO - 🎯 AUTO-CAL EXIT: Profit Target Met (Mode 2: Net > 145.32)
+2026-02-19 09:51:03,092 - INFO - Trade Closed (Order 3321629107389353984) - Realized PnL: 274.6519, Fee: -27.8614, Net: 246.7905
+2026-02-19 09:51:03,677 - INFO - Closing short position: 607.38 contracts (posSide: net)
+2026-02-19 09:51:03,677 - INFO - Placing Market buy order for 607.38 ETH-USDT-SWAP
+2026-02-19 09:51:04,539 - INFO - Position Detected Closed: SHORT
+2026-02-19 09:51:06,095 - INFO - Trade Closed (Order 3321629187450228736) - Realized PnL: 596.8873, Fee: -60.5497, Net: 536.3376
+2026-02-19 09:52:35,161 - INFO - 🎯 AUTO-CAL EXIT: Profit Target Met (Mode 2: Net > 66.74)
+2026-02-19 09:52:35,754 - INFO - Closing short position: 279.48 contracts (posSide: net)
+2026-02-19 09:52:35,755 - INFO - Placing Market buy order for 279.48 ETH-USDT-SWAP
+2026-02-19 09:52:36,048 - ERROR - Order failed: All operations failed | Detail: Order failed because you don't have any positions in this direction for this contract to reduce or close.  (sCode: 51169) (Code: 1). Request: sz=279.48, px=MKT, side=buy, algo=False
+2026-02-19 09:52:46,345 - INFO - 🎯 AUTO-CAL EXIT: Profit Target Met (Mode 2: Net > 66.75)
+2026-02-19 09:52:46,895 - INFO - Closing short position: 279.48 contracts (posSide: net)
+2026-02-19 09:52:46,895 - INFO - Placing Market buy order for 279.48 ETH-USDT-SWAP
+2026-02-19 09:52:47,178 - ERROR - Order failed: All operations failed | Detail: Order failed because you don't have any positions in this direction for this contract to reduce or close.  (sCode: 51169) (Code: 1). Request: sz=279.48, px=MKT, side=buy, algo=False

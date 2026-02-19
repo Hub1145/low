@@ -23,7 +23,7 @@ class TradingBotEngine:
         self.is_running = False
         self.stop_event = threading.Event()
         self.console_logs = deque(maxlen=1000)
-        self.product_info = {'contractSize': 1.0, 'lotSz': '1', 'tickSz': '0.01', 'pricePrecision': 2, 'qtyPrecision': 2, 'qtyStepSize': 1.0, 'minOrderQty': 0.01}
+        self.product_info = {'is_loaded': False, 'contractSize': 1.0, 'lotSz': '1', 'tickSz': '0.01', 'pricePrecision': 2, 'qtyPrecision': 2, 'qtyStepSize': 1.0, 'minOrderQty': 0.01}
         self.latest_trade_price = 0.0
         self.total_trades_count = 0
         self.last_emit_time = 0

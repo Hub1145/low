@@ -71,17 +71,17 @@ class OrderManager:
             # OKX V5:
             # - long_short_mode (Hedge): posSide must be 'long' or 'short'.
             # - net_mode (One-way): posSide should be 'net' or omitted.
-            mode = self.config.get('okx_pos_mode', 'net_mode')
-            if mode == 'long_short_mode':
-                if posSide in ['long', 'short']:
-                    body["posSide"] = posSide
-                else:
+            if posSide in ['long', 'short', 'net']:
+                body["posSide"] = posSide
+            else:
+                mode = self.config.get('okx_pos_mode', 'net_mode')
+                if mode == 'long_short_mode':
                     # Determine from trade side if not specified
                     body["posSide"] = self.config.get('direction', 'long')
                     if body["posSide"] == 'both':
                         body["posSide"] = 'long' if side.lower() == 'buy' else 'short'
-            else:
-                body["posSide"] = "net"
+                else:
+                    body["posSide"] = "net"
 
             if order_type.lower() == "limit" and price is not None:
                 price = self._round_to_step(price, p_step)
