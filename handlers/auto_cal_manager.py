@@ -28,6 +28,8 @@ class AutoCalManager:
 
         # Avoid calculation with default/stale product info
         if not self.engine.product_info.get('is_loaded'):
+            if self.engine.monitoring_tick % 60 == 0:
+                self.engine.log("Auto-Cal calculation skipped: Product Info not loaded.", level="debug")
             return
 
         mkt = self.engine.latest_trade_price
@@ -59,44 +61,33 @@ class AutoCalManager:
                 upl = self.engine.position_manager.position_upl[side]
                 entry_fees = self.engine.position_manager.current_entry_fees.get(side, 0.0)
                 cycle_loss = self.engine.position_manager.realized_loss_this_cycle.get(side, 0.0)
-
                 current_net_pnl = upl - entry_fees - cycle_loss
 
-                # To account for the fact that the existing position ALSO recovers as price moves,
-                # we use a more accurate Martingale formula:
-                # V = -(Net_PnL + S * (rec - fee_pct)) / (rec - 2 * fee_pct)
-                # where S is existing notional, rec is recovery decimal, fee_pct is one-way fee.
+                # Simplified formula to ensure Need Add is always positive when in loss/below target.
+                # We calculate V such that adding V and moving rec% covers the TARGET profit.
+                # V = (Target - CurrentNetPnL) / (rec - 2 * fee_pct)
 
                 # Mode 1: Above Zero (Target Net PnL = 0)
                 v_zero = 0.0
-                denominator = gain_factor # (rec - 2 * fee_pct)
-
-                # Contribution from existing position moving rec%
-                # Estimated gain from move = notional * (rec - fee_pct_for_exit)
-                existing_recovery_gain = notional * (rec - fee_pct)
-
-                if current_net_pnl + existing_recovery_gain < 0:
-                    v_zero = -(current_net_pnl + existing_recovery_gain) / denominator
+                if current_net_pnl < 0:
+                    v_zero = (-current_net_pnl) / gain_factor
 
                 if v_zero > 0:
                     self.need_add_above_zero_per_side[side] = v_zero
                     self.need_add_usdt_above_zero += v_zero
-                    self.engine.log(f"Auto-Cal Need Add ({side.upper()}): NetPnL={current_net_pnl:.2f}, GainIfMove={existing_recovery_gain:.2f} -> Need {v_zero:.2f} USDT notional to recover.", level="debug")
+
+                self.engine.log(f"Auto-Cal Debug ({side.upper()}): NetPnL={current_net_pnl:.2f}, UPL={upl:.2f}, Fees={entry_fees:.2f}, Target0_Need={v_zero:.2f}", level="debug")
 
                 # Mode 2: Profit Target
                 # Target Net Profit = One-way fee * multiplier
                 target_net_profit = (notional * fee_pct) * mult
-
-                # We want: (V * gain_factor) + current_net_pnl + existing_recovery_gain = target_net_profit
-                # Wait, target_net_profit also grows as we add V?
-                # User usually means a target based on the INITIAL or CURRENT notional.
-
-                v_profit = (target_net_profit - (current_net_pnl + existing_recovery_gain)) / denominator
+                v_profit = (target_net_profit - current_net_pnl) / gain_factor
                 if v_profit < 0: v_profit = 0.0
 
                 if v_profit > 0:
                     self.need_add_profit_target_per_side[side] = v_profit
                     self.need_add_usdt_profit_target += v_profit
+                    self.engine.log(f"Auto-Cal Debug ({side.upper()}): TargetProfit={target_net_profit:.2f}, TargetProfit_Need={v_profit:.2f}", level="debug")
 
     def check_auto_exit(self, net_pnl, unrealized_pnl):
         notional = self.engine.cached_pos_notional

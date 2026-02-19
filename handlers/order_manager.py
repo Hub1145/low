@@ -67,13 +67,21 @@ class OrderManager:
                 "sz": f"{qty:.{q_prec}f}" if q_prec > 0 else str(int(qty))
             }
 
-            # Use provided posSide if it's valid (long, short, net)
-            # This is critical for closing manual positions that might be in a different mode than configured
-            if posSide in ['long', 'short', 'net']:
-                body["posSide"] = posSide
-            elif self.config.get('okx_pos_mode') == 'long_short_mode' and not posSide:
-                # Fallback to configured mode for new entry orders if posSide not specified
-                body["posSide"] = self.config.get('direction', 'long')
+            # Determine correct posSide based on account mode
+            # OKX V5:
+            # - long_short_mode (Hedge): posSide must be 'long' or 'short'.
+            # - net_mode (One-way): posSide should be 'net' or omitted.
+            mode = self.config.get('okx_pos_mode', 'net_mode')
+            if mode == 'long_short_mode':
+                if posSide in ['long', 'short']:
+                    body["posSide"] = posSide
+                else:
+                    # Determine from trade side if not specified
+                    body["posSide"] = self.config.get('direction', 'long')
+                    if body["posSide"] == 'both':
+                        body["posSide"] = 'long' if side.lower() == 'buy' else 'short'
+            else:
+                body["posSide"] = "net"
 
             if order_type.lower() == "limit" and price is not None:
                 price = self._round_to_step(price, p_step)

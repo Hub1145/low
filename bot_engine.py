@@ -194,6 +194,8 @@ class TradingBotEngine:
 
                 # 1. Background Tasks (Silent syncs)
                 if self.monitoring_tick % 15 == 0:
+                    if not self.product_info.get('is_loaded'):
+                        self.account_manager.fetch_product_info(self.config['symbol'])
                     self.account_manager.sync_account_data()
                     self.position_manager.sync_positions()
                     self.indicator_manager.fetch_historical_data(self.config['symbol'], self.config.get('candlestick_timeframe', '1m'))

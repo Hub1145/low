@@ -1,0 +1,18 @@
+2026-02-19 09:30:55,667 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+ * Serving Flask app 'app'
+ * Debug mode: off
+2026-02-19 09:30:55,675 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.2:5000
+2026-02-19 09:30:55,675 - INFO - [33mPress CTRL+C to quit[0m
+2026-02-19 09:30:56,233 - INFO - Product Info Updated for ETH-USDT-SWAP: ContractSize=0.1, LotSz=0.01
+2026-02-19 09:30:56,847 - INFO - Bot initialized and started (Mode: Passive)
+2026-02-19 09:30:57,631 - INFO - Websocket connected
+2026-02-19 09:30:57,688 - INFO - Websocket connected
+2026-02-19 09:30:57,925 - INFO - WebSocket Login Successful.
+2026-02-19 09:30:58,263 - INFO - Auto-Add Gap Triggered: short position, last add 1998.6540317732934, mkt 2004.79, gap 5.00
+2026-02-19 09:30:58,263 - INFO - Auto-Add Calc: Current 56029.87, Pct 30.0% -> 16808.96. Recovery Target 54255.43. Final 54255.43
+2026-02-19 09:30:58,263 - INFO - Auto-Cal Add Position: Bypassing budget and min-order restrictions.
+2026-02-19 09:30:58,263 - INFO - Placing Market sell order for 270.62 ETH-USDT-SWAP
+2026-02-19 09:31:11,446 - INFO - Baseline initialized: Long=0.0, Short=279.48 contracts
