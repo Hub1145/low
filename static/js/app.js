@@ -16,6 +16,12 @@ let orderExpirationCache = {}; // Cache to store calcualted expiration timestamp
 let lastUsedFee = 0; // Track last known used fee for Auto-Cal calculation
 let lastSizeFee = 0; // Track last known Size Fee for Auto-Cal Size calculation
 
+const safeFix = (val, prec = 2) => {
+    const n = Number(val);
+    if (isNaN(n) || !isFinite(n)) return '0.00';
+    return n.toFixed(prec);
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     initializeTheme();
 
@@ -424,12 +430,6 @@ function updateAccountMetrics(data) {
         return;
     }
 
-    const safeFix = (val, prec = 2) => {
-        const n = Number(val);
-        if (isNaN(n) || !isFinite(n)) return '0.00';
-        return n.toFixed(prec);
-    };
-
     const safeSetText = (id, text) => {
         const el = document.getElementById(id);
         if (el) el.textContent = text;
@@ -674,6 +674,7 @@ function updatePositionDisplay(positionData) {
                     price: positionData.position_entry_price ? positionData.position_entry_price[side] : 0,
                     qty: positionData.position_qty ? positionData.position_qty[side] : 0,
                     upl: positionData.position_upl ? positionData.position_upl[side] : 0,
+                    net_pnl: positionData.position_net_pnl ? positionData.position_net_pnl[side] : 0,
                     tp: positionData.current_take_profit ? positionData.current_take_profit[side] : 0,
                     sl: positionData.current_stop_loss ? positionData.current_stop_loss[side] : 0,
                     liq: positionData.position_liq ? positionData.position_liq[side] : 0
@@ -703,6 +704,8 @@ function updatePositionDisplay(positionData) {
                     <div class="col-6 small text-end">${safeFix4(pos.qty)}</div>
                     <div class="col-6 small text-white-50">Unrealized PnL:</div>
                     <div class="col-6 small text-end ${pos.upl >= 0 ? 'text-success' : 'text-danger'}">$${pos.upl.toFixed(2)}</div>
+                    <div class="col-6 small text-white-50">Net PnL (w/ Fees):</div>
+                    <div class="col-6 small text-end ${pos.net_pnl >= 0 ? 'text-success' : 'text-danger'}">$${(pos.net_pnl || pos.upl).toFixed(2)}</div>
                     <div class="col-6 small text-white-50">Current TP:</div>
                     <div class="col-6 small text-end text-success">${safeFix4(pos.tp)}</div>
                     <div class="col-6 small text-white-50">Current SL:</div>

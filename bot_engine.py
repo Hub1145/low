@@ -293,6 +293,10 @@ class TradingBotEngine:
             'net_profit': self.net_profit, 'in_position': self.in_position,
             'position_qty': self.position_qty, 'position_entry_price': self.position_entry_price,
             'position_upl': self.position_upl,
+            'position_net_pnl': {
+                'long': self.position_upl.get('long', 0.0) - self.position_manager.current_entry_fees.get('long', 0.0) - self.position_manager.realized_loss_this_cycle.get('long', 0.0),
+                'short': self.position_upl.get('short', 0.0) - self.position_manager.current_entry_fees.get('short', 0.0) - self.position_manager.realized_loss_this_cycle.get('short', 0.0)
+            },
             'position_liq': self.position_manager.position_liq,
             'daily_reports': self.daily_reports,
             'need_add_usdt': self.need_add_usdt_profit_target,
@@ -327,13 +331,17 @@ class TradingBotEngine:
                 if in_p:
                     qty = abs(self.position_qty[s])
                     if qty > 0:
-                        self.log(f"Closing {s} position: {qty} contracts", level="info")
+                        # Use the actual posSide from OKX for this position to ensure we can close manual trades
+                        pos_detail = self.position_manager.position_details.get(s, {})
+                        actual_pos_side = pos_detail.get('posSide', 'net')
+
+                        self.log(f"Closing {s} position: {qty} contracts (posSide: {actual_pos_side})", level="info")
                         self.order_manager.place_order(
                             self.config['symbol'],
                             "sell" if s == "long" else "buy",
                             qty,
                             order_type="Market",
-                            posSide=s,
+                            posSide=actual_pos_side,
                             reduce_only=True
                         )
 

@@ -43,13 +43,18 @@ class PositionManager:
         contract_size = safe_float(self.engine.product_info.get('contractSize', 1.0))
 
         with self.engine.lock:
-            if not self.baseline_initialized and is_snapshot:
+            if not self.baseline_initialized:
+                # We initialize baseline from the first set of positions we receive,
+                # whether it's a REST snapshot or a WS snapshot.
                 for pos in positions_data:
                     if pos.get('instId', '').strip().upper() == target_symbol:
                         q = abs(safe_float(pos.get('pos')))
                         if q > 0:
                             s_key = self._map_side(pos.get('posSide', 'net'), qty=safe_float(pos.get('pos')))
                             self.session_baseline_qty[s_key] = q
+
+                # If we are starting the bot (not just passive monitoring),
+                # we definitely want to capture existing positions as baseline.
                 self.baseline_initialized = True
                 self.engine.log(f"Baseline initialized: Long={self.session_baseline_qty['long']}, Short={self.session_baseline_qty['short']} contracts (Manual positions ignored in used margin)")
 

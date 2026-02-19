@@ -31,6 +31,13 @@ class AutoCalManager:
             return
 
         mkt = self.engine.latest_trade_price
+        if mkt <= 0:
+            # Fallback to entry price to allow calculation even before first ticker
+            for side in ['long', 'short']:
+                if self.engine.in_position[side]:
+                    mkt = self.engine.position_entry_price[side]
+                    if mkt > 0: break
+
         if mkt <= 0: return
 
         fee_pct = self.config.get('trade_fee_percentage', 0.08) / 100.0
@@ -46,7 +53,9 @@ class AutoCalManager:
         for side in ['long', 'short']:
             if self.engine.in_position[side]:
                 notional = self.engine.position_manager.position_notional[side]
+                # Use the per-side UPL directly as requested (matching Financials display logic)
                 upl = self.engine.position_manager.position_upl[side]
+
 
                 # Costs in USDT (already incurred)
                 current_fees = self.engine.position_manager.current_entry_fees[side]
@@ -56,26 +65,27 @@ class AutoCalManager:
                 # Current Net PnL (for this side)
                 current_net_pnl = upl - costs
 
-                # We also need to consider the profit/loss of the EXISTING position after 'rec' move
-                # For long, 'rec' move adds (notional * rec)
-                # For short, 'rec' move adds (notional * rec) if it's a move TOWARDS target
-                # The 'rec' percent is assumed to be the distance to recovery.
-                existing_pos_gain = notional * rec
+                # USER FEEDBACK: Need Add should be positive if Net Profit is negative.
+                # To achieve this, we ignore the recovery gain of the EXISTING position in the base 'Need Add' display.
+                # This ensures the calculated volume V is sufficient for the ADDED portion to cover the loss.
 
                 # Mode 1: Above Zero (Target Net = 0)
-                # We want: current_net_pnl + existing_pos_gain + (V * gain_factor) = 0
-                # V * gain_factor = -(current_net_pnl + existing_pos_gain)
-                v_zero = -(current_net_pnl + existing_pos_gain) / gain_factor
+                # We want: (V * gain_factor) + current_net_pnl = 0  => V = -current_net_pnl / gain_factor
+                v_zero = 0.0
+                if current_net_pnl < 0:
+                    v_zero = (-current_net_pnl) / gain_factor
+
                 if v_zero > 0:
                     self.need_add_above_zero_per_side[side] = v_zero
                     self.need_add_usdt_above_zero += v_zero
 
                 # Mode 2: Profit Target
                 # Target = One-way fee * multiplier
-                # (matching check_auto_exit Mode 2 logic)
                 target_profit = (notional * fee_pct) * mult
-                # We want: current_net_pnl + existing_pos_gain + (V * gain_factor) = target_profit
-                v_profit = (target_profit - (current_net_pnl + existing_pos_gain)) / gain_factor
+                # We want: (V * gain_factor) + current_net_pnl = target_profit
+                v_profit = (target_profit - current_net_pnl) / gain_factor
+                if v_profit < 0: v_profit = 0.0
+
                 if v_profit > 0:
                     self.need_add_profit_target_per_side[side] = v_profit
                     self.need_add_usdt_profit_target += v_profit
@@ -226,6 +236,10 @@ class AutoCalManager:
 
         tp, sl = self.engine.order_manager._calculate_tpsl_prices(side, price)
 
+        # Use actual posSide from existing position to maintain consistency
+        pos_detail = self.engine.position_manager.position_details.get(side, {})
+        actual_pos_side = pos_detail.get('posSide', 'net')
+
         # Step 2 Exit Offset Override (Relative to New Average Entry)
         step2 = safe_float(self.config.get('add_pos_step2_offset'), 0)
         if step2 > 0:
@@ -241,7 +255,7 @@ class AutoCalManager:
                 self.engine.log(f"Auto-Add Step 2: New Avg Entry Est {new_avg_entry:.4f}, TP set at {tp:.4f} (Offset {step2})")
 
         if self.engine.order_manager.place_order(self.config['symbol'], "buy" if side == "long" else "sell", sz,
-                                                 order_type="Market", posSide=side, take_profit_price=tp, stop_loss_price=sl):
+                                                 order_type="Market", posSide=actual_pos_side, take_profit_price=tp, stop_loss_price=sl):
             self.auto_add_step_count[side] += 1
             self.last_order_time = time.time()
             return True

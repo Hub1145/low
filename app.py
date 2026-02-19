@@ -321,13 +321,21 @@ def get_status():
                 'in': bot_engine.in_position.get('long', False),
                 'qty': bot_engine.position_qty.get('long', 0.0),
                 'upl': bot_engine.position_upl.get('long', 0.0),
-                'price': bot_engine.position_entry_price.get('long', 0.0)
+                'net_pnl': bot_engine.position_upl.get('long', 0.0) - bot_engine.position_manager.current_entry_fees.get('long', 0.0) - bot_engine.position_manager.realized_loss_this_cycle.get('long', 0.0),
+                'price': bot_engine.position_entry_price.get('long', 0.0),
+                'tp': bot_engine.current_take_profit.get('long', 0.0),
+                'sl': bot_engine.current_stop_loss.get('long', 0.0),
+                'liq': bot_engine.position_manager.position_liq.get('long', 0.0)
             },
             'short': {
                 'in': bot_engine.in_position.get('short', False),
                 'qty': bot_engine.position_qty.get('short', 0.0),
                 'upl': bot_engine.position_upl.get('short', 0.0),
-                'price': bot_engine.position_entry_price.get('short', 0.0)
+                'net_pnl': bot_engine.position_upl.get('short', 0.0) - bot_engine.position_manager.current_entry_fees.get('short', 0.0) - bot_engine.position_manager.realized_loss_this_cycle.get('short', 0.0),
+                'price': bot_engine.position_entry_price.get('short', 0.0),
+                'tp': bot_engine.current_take_profit.get('short', 0.0),
+                'sl': bot_engine.current_stop_loss.get('short', 0.0),
+                'liq': bot_engine.position_manager.position_liq.get('short', 0.0)
             }
         },
         'primary_in_position': any(bot_engine.in_position.values()),
@@ -389,6 +397,11 @@ def handle_connect(auth=None):
             'in_position': bot_engine.in_position,
             'position_entry_price': bot_engine.position_entry_price,
             'position_qty': bot_engine.position_qty,
+            'position_upl': bot_engine.position_upl,
+            'position_net_pnl': {
+                'long': bot_engine.position_upl.get('long', 0.0) - bot_engine.position_manager.current_entry_fees.get('long', 0.0) - bot_engine.position_manager.realized_loss_this_cycle.get('long', 0.0),
+                'short': bot_engine.position_upl.get('short', 0.0) - bot_engine.position_manager.current_entry_fees.get('short', 0.0) - bot_engine.position_manager.realized_loss_this_cycle.get('short', 0.0)
+            },
             'position_liq': bot_engine.position_manager.position_liq,
             'current_take_profit': bot_engine.current_take_profit,
             'current_stop_loss': bot_engine.current_stop_loss

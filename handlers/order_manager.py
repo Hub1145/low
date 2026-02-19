@@ -65,8 +65,13 @@ class OrderManager:
                 "sz": f"{qty:.{q_prec}f}" if q_prec > 0 else str(int(qty))
             }
 
-            if self.config.get('okx_pos_mode') == 'long_short_mode' and posSide:
+            # Use provided posSide if it's valid (long, short, net)
+            # This is critical for closing manual positions that might be in a different mode than configured
+            if posSide in ['long', 'short', 'net']:
                 body["posSide"] = posSide
+            elif self.config.get('okx_pos_mode') == 'long_short_mode' and not posSide:
+                # Fallback to configured mode for new entry orders if posSide not specified
+                body["posSide"] = self.config.get('direction', 'long')
 
             if order_type.lower() == "limit" and price is not None:
                 price = self._round_to_step(price, p_step)
