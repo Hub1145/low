@@ -53,27 +53,17 @@ class AutoCalManager:
         for side in ['long', 'short']:
             if self.engine.in_position[side]:
                 notional = self.engine.position_manager.position_notional[side]
-                # Use the per-side UPL directly as requested (matching Financials display logic)
-                upl = self.engine.position_manager.position_upl[side]
-
-
-                # Costs in USDT (already incurred)
-                current_fees = self.engine.position_manager.current_entry_fees[side]
-                realized_loss = self.engine.position_manager.realized_loss_this_cycle[side]
-                costs = current_fees + realized_loss
-
-                # Current Net PnL (for this side)
-                current_net_pnl = upl - costs
+                # Use the per-side UPL directly as requested (matching Financials "Net Profit" display logic)
+                current_pnl = self.engine.position_manager.position_upl[side]
 
                 # USER FEEDBACK: Need Add should be positive if Net Profit is negative.
-                # To achieve this, we ignore the recovery gain of the EXISTING position in the base 'Need Add' display.
-                # This ensures the calculated volume V is sufficient for the ADDED portion to cover the loss.
+                # We use the raw UPL as requested.
 
-                # Mode 1: Above Zero (Target Net = 0)
-                # We want: (V * gain_factor) + current_net_pnl = 0  => V = -current_net_pnl / gain_factor
+                # Mode 1: Above Zero (Target PnL = 0)
+                # We want: (V * gain_factor) + current_pnl = 0  => V = -current_pnl / gain_factor
                 v_zero = 0.0
-                if current_net_pnl < 0:
-                    v_zero = (-current_net_pnl) / gain_factor
+                if current_pnl < 0:
+                    v_zero = (-current_pnl) / gain_factor
 
                 if v_zero > 0:
                     self.need_add_above_zero_per_side[side] = v_zero
@@ -82,8 +72,8 @@ class AutoCalManager:
                 # Mode 2: Profit Target
                 # Target = One-way fee * multiplier
                 target_profit = (notional * fee_pct) * mult
-                # We want: (V * gain_factor) + current_net_pnl = target_profit
-                v_profit = (target_profit - current_net_pnl) / gain_factor
+                # We want: (V * gain_factor) + current_pnl = target_profit
+                v_profit = (target_profit - current_pnl) / gain_factor
                 if v_profit < 0: v_profit = 0.0
 
                 if v_profit > 0:
@@ -255,7 +245,8 @@ class AutoCalManager:
                 self.engine.log(f"Auto-Add Step 2: New Avg Entry Est {new_avg_entry:.4f}, TP set at {tp:.4f} (Offset {step2})")
 
         if self.engine.order_manager.place_order(self.config['symbol'], "buy" if side == "long" else "sell", sz,
-                                                 order_type="Market", posSide=actual_pos_side, take_profit_price=tp, stop_loss_price=sl):
+                                                 order_type="Market", posSide=actual_pos_side, take_profit_price=tp, stop_loss_price=sl,
+                                                 context='autocal'):
             self.auto_add_step_count[side] += 1
             self.last_order_time = time.time()
             return True

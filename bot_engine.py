@@ -262,6 +262,28 @@ class TradingBotEngine:
                     ord_id = o.get('ordId')
                     raw_side = o.get('posSide', 'net')
                     sz = safe_float(o.get('sz'))
+                    acc_fill = safe_float(o.get('accFillSz', 0))
+                    prev_fill = self.order_manager.order_fills.get(ord_id, 0.0)
+                    fill_delta = acc_fill - prev_fill
+                    state = o.get('state')
+
+                    # Track loop quantity based on order context
+                    context = self.order_manager.order_contexts.get(ord_id)
+                    if context == 'loop' and fill_delta > 0:
+                        # Update tracked fill size
+                        self.order_manager.order_fills[ord_id] = acc_fill
+
+                        # Determine if this order is opening or closing
+                        side = o.get('side') # buy/sell
+                        pos_side_key = self.position_manager._map_side(raw_side, qty=(sz if side == 'buy' else -sz))
+
+                        # If buy for long or sell for short, it's opening/adding
+                        is_adding = (side == 'buy' and pos_side_key == 'long') or (side == 'sell' and pos_side_key == 'short')
+
+                        delta = fill_delta if is_adding else -fill_delta
+                        self.position_manager.update_loop_qty(pos_side_key, delta)
+                        self.log(f"Loop Qty Updated: {pos_side_key} {delta:+.4f} (Context: {context})", level="debug")
+
                     fee = safe_float(o.get('fillFee', 0))
                     if fee != 0: self.position_manager.add_fee(fee, raw_side, qty=sz)
                     pnl = safe_float(o.get('fillPnl', 0))
@@ -273,15 +295,6 @@ class TradingBotEngine:
         self.last_emit_time = time.time()
 
         fee_pct = self.config.get('trade_fee_percentage', 0.08) / 100.0
-
-        # Calculate Required Contracts for Need Add display
-        mkt = self.latest_trade_price
-        ct_size = self.product_info.get('contractSize', 1.0)
-        need_add_qty_profit = 0.0
-        need_add_qty_zero = 0.0
-        if mkt > 0 and ct_size > 0:
-            need_add_qty_profit = self.need_add_usdt_profit_target / (mkt * ct_size)
-            need_add_qty_zero = self.need_add_usdt_above_zero / (mkt * ct_size)
 
         payload = {
             'total_trades': self.total_trades_count, 'total_capital': self.total_equity,
@@ -301,8 +314,6 @@ class TradingBotEngine:
             'daily_reports': self.daily_reports,
             'need_add_usdt': self.need_add_usdt_profit_target,
             'need_add_above_zero': self.need_add_usdt_above_zero,
-            'need_add_qty_profit': need_add_qty_profit,
-            'need_add_qty_zero': need_add_qty_zero,
             'running': self.is_running,
             'trade_fees': self.trade_fees, 'net_trade_profit': self.net_trade_profit,
             'used_fees': sum(self.position_manager.current_entry_fees.values()),

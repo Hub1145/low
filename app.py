@@ -5,6 +5,7 @@ import logging
 import os
 import functools
 import threading
+import time
 from logging.handlers import RotatingFileHandler
 from bot_engine import TradingBotEngine
 
@@ -339,7 +340,7 @@ def get_status():
             }
         },
         'primary_in_position': any(bot_engine.in_position.values()),
-        'size_amount': bot_engine.used_amount_notional,
+        'size_amount': bot_engine.size_amount,
         'need_add_usdt': getattr(bot_engine, 'need_add_usdt_profit_target', 0.0),
         'need_add_above_zero': getattr(bot_engine, 'need_add_usdt_above_zero', 0.0),
         # Realized profit tracking

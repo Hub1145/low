@@ -455,7 +455,7 @@ function updateAccountMetrics(data) {
     const remainingEl = document.getElementById('remainingAmount');
     if (remainingEl) {
         if (!isNaN(remaining) && remaining < minOrder && minOrder > 0) {
-            remainingEl.textContent = 'No remaining balance for trade';
+            remainingEl.textContent = 'Loop budget exhausted';
             remainingEl.classList.add('text-danger', 'small');
             remainingEl.style.fontSize = '0.75rem';
         } else {
@@ -466,16 +466,9 @@ function updateAccountMetrics(data) {
     }
     const needAddProfitVal = Number(data.need_add_usdt) || 0;
     const needAddPnlVal = Number(data.need_add_above_zero) || 0;
-    const qtyProfitVal = Number(data.need_add_qty_profit) || 0;
-    const qtyZeroVal = Number(data.need_add_qty_zero) || 0;
 
-    let profitText = `$${safeFix(needAddProfitVal)}`;
-    if (qtyProfitVal > 0) profitText += ` (${safeFix(qtyProfitVal, 4)} ct)`;
-    safeSetText('needAddProfitTargetDisplay', profitText);
-
-    let pnlText = `$${safeFix(needAddPnlVal)}`;
-    if (qtyZeroVal > 0) pnlText += ` (${safeFix(qtyZeroVal, 4)} ct)`;
-    safeSetText('needAddAboveZeroDisplay', pnlText);
+    safeSetText('needAddProfitTargetDisplay', `$${safeFix(needAddProfitVal)}`);
+    safeSetText('needAddAboveZeroDisplay', `$${safeFix(needAddPnlVal)}`);
     if (data.available_balance !== undefined) {
         safeSetText('balance', `$${safeFix(data.available_balance)}`);
     }

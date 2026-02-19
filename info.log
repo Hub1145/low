@@ -1,0 +1,160 @@
+2026-02-19 08:47:40,785 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-02-19 08:48:16,943 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-02-19 08:48:16,953 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.2:5000
+2026-02-19 08:48:16,953 - INFO - [33mPress CTRL+C to quit[0m
+2026-02-19 08:48:17,520 - INFO - Product Info Updated for BTC-USDT-SWAP: ContractSize=0.01, LotSz=0.01
+2026-02-19 08:48:17,799 - INFO - Bot initialized and started (Mode: Passive)
+2026-02-19 08:48:18,590 - INFO - Websocket connected
+2026-02-19 08:48:18,593 - INFO - Websocket connected
+2026-02-19 08:48:18,806 - ERROR - WebSocket error: fin=1 opcode=8 data=b'\x0f\xa1Login failed.'
+2026-02-19 08:48:18,806 - ERROR - fin=1 opcode=8 data=b'\x0f\xa1Login failed.' - goodbye
+2026-02-19 08:48:23,807 - INFO - Restarting WebSocket connections...
+2026-02-19 08:48:26,792 - INFO - Websocket connected
+2026-02-19 08:48:26,993 - INFO - Websocket connected
+2026-02-19 08:48:27,206 - ERROR - WebSocket error: fin=1 opcode=8 data=b'\x0f\xa1Login failed.'
+2026-02-19 08:48:27,207 - ERROR - fin=1 opcode=8 data=b'\x0f\xa1Login failed.' - goodbye
+2026-02-19 08:48:32,208 - INFO - Restarting WebSocket connections...
+2026-02-19 08:48:35,182 - INFO - Websocket connected
+2026-02-19 08:48:35,193 - INFO - Websocket connected
+2026-02-19 08:48:35,406 - ERROR - WebSocket error: fin=1 opcode=8 data=b'\x0f\xa1Login failed.'
+2026-02-19 08:48:35,406 - ERROR - fin=1 opcode=8 data=b'\x0f\xa1Login failed.' - goodbye
+2026-02-19 08:48:40,407 - INFO - Restarting WebSocket connections...
+2026-02-19 08:48:43,403 - INFO - Websocket connected
+2026-02-19 08:48:43,434 - INFO - Websocket connected
+2026-02-19 08:48:43,665 - ERROR - WebSocket error: fin=1 opcode=8 data=b'\x0f\xa1Login failed.'
+2026-02-19 08:48:43,666 - ERROR - fin=1 opcode=8 data=b'\x0f\xa1Login failed.' - goodbye
+2026-02-19 08:48:45,272 - INFO - 127.0.0.1 - - [19/Feb/2026 08:48:45] "GET /login HTTP/1.1" 200 -
+2026-02-19 08:48:46,321 - INFO - 127.0.0.1 - - [19/Feb/2026 08:48:46] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-02-19 08:48:46,361 - INFO - 127.0.0.1 - - [19/Feb/2026 08:48:46] "GET / HTTP/1.1" 200 -
+2026-02-19 08:48:46,402 - INFO - 127.0.0.1 - - [19/Feb/2026 08:48:46] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-02-19 08:48:46,407 - INFO - 127.0.0.1 - - [19/Feb/2026 08:48:46] "GET /static/js/app.js HTTP/1.1" 200 -
+2026-02-19 08:48:46,626 - INFO - 127.0.0.1 - - [19/Feb/2026 08:48:46] "GET /api/config HTTP/1.1" 200 -
+2026-02-19 08:48:46,632 - INFO - 127.0.0.1 - - [19/Feb/2026 08:48:46] "GET /api/status HTTP/1.1" 200 -
+2026-02-19 08:48:46,655 - INFO - Client connected: qC98IqdQeEV__p9tAAAB
+2026-02-19 08:48:46,686 - INFO - 127.0.0.1 - - [19/Feb/2026 08:48:46] "GET /api/status HTTP/1.1" 200 -
+2026-02-19 08:48:48,667 - INFO - Restarting WebSocket connections...
+2026-02-19 08:48:51,655 - INFO - Websocket connected
+2026-02-19 08:48:51,685 - INFO - Websocket connected
+2026-02-19 08:48:51,902 - ERROR - WebSocket error: fin=1 opcode=8 data=b'\x0f\xa1Login failed.'
+2026-02-19 08:48:51,902 - ERROR - fin=1 opcode=8 data=b'\x0f\xa1Login failed.' - goodbye
+2026-02-19 08:48:53,524 - INFO - Client disconnected
+2026-02-19 08:48:53,525 - INFO - 127.0.0.1 - - [19/Feb/2026 08:48:53] "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 200 -
+2026-02-19 08:48:56,903 - INFO - Restarting WebSocket connections...
+2026-02-19 08:48:59,868 - INFO - Websocket connected
+2026-02-19 08:48:59,917 - INFO - Websocket connected
+2026-02-19 08:49:00,147 - ERROR - WebSocket error: fin=1 opcode=8 data=b'\x0f\xa1Login failed.'
+2026-02-19 08:49:00,148 - ERROR - fin=1 opcode=8 data=b'\x0f\xa1Login failed.' - goodbye
+2026-02-19 08:49:05,149 - INFO - Restarting WebSocket connections...
+2026-02-19 08:49:08,120 - INFO - Websocket connected
+2026-02-19 08:49:08,162 - INFO - Websocket connected
+2026-02-19 08:49:08,335 - ERROR - WebSocket error: fin=1 opcode=8 data=b'\x0f\xa1Login failed.'
+2026-02-19 08:49:08,336 - ERROR - fin=1 opcode=8 data=b'\x0f\xa1Login failed.' - goodbye
+2026-02-19 08:49:13,336 - INFO - Restarting WebSocket connections...
+2026-02-19 08:49:16,331 - INFO - Websocket connected
+2026-02-19 08:49:16,360 - INFO - Websocket connected
+2026-02-19 08:49:16,586 - ERROR - WebSocket error: fin=1 opcode=8 data=b'\x0f\xa1Login failed.'
+2026-02-19 08:49:16,587 - ERROR - fin=1 opcode=8 data=b'\x0f\xa1Login failed.' - goodbye
+2026-02-19 08:49:18,920 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-02-19 08:49:18,928 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.2:5000
+2026-02-19 08:49:18,928 - INFO - [33mPress CTRL+C to quit[0m
+2026-02-19 08:49:19,510 - INFO - Product Info Updated for BTC-USDT-SWAP: ContractSize=0.01, LotSz=0.01
+2026-02-19 08:49:19,786 - INFO - Bot initialized and started (Mode: Passive)
+2026-02-19 08:49:20,548 - INFO - Websocket connected
+2026-02-19 08:49:20,565 - INFO - Websocket connected
+2026-02-19 08:49:20,782 - ERROR - WebSocket error: fin=1 opcode=8 data=b'\x0f\xa1Login failed.'
+2026-02-19 08:49:20,783 - ERROR - fin=1 opcode=8 data=b'\x0f\xa1Login failed.' - goodbye
+2026-02-19 08:49:23,827 - INFO - 127.0.0.1 - - [19/Feb/2026 08:49:23] "GET /login HTTP/1.1" 200 -
+2026-02-19 08:49:24,988 - INFO - 127.0.0.1 - - [19/Feb/2026 08:49:24] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-02-19 08:49:25,007 - INFO - 127.0.0.1 - - [19/Feb/2026 08:49:25] "GET / HTTP/1.1" 200 -
+2026-02-19 08:49:25,033 - INFO - 127.0.0.1 - - [19/Feb/2026 08:49:25] "GET /static/js/app.js HTTP/1.1" 200 -
+2026-02-19 08:49:25,034 - INFO - 127.0.0.1 - - [19/Feb/2026 08:49:25] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-02-19 08:49:25,182 - INFO - 127.0.0.1 - - [19/Feb/2026 08:49:25] "GET /api/config HTTP/1.1" 200 -
+2026-02-19 08:49:25,187 - INFO - 127.0.0.1 - - [19/Feb/2026 08:49:25] "GET /api/status HTTP/1.1" 200 -
+2026-02-19 08:49:25,199 - INFO - Client connected: rOItknBK2YdPSwGCAAAB
+2026-02-19 08:49:25,249 - INFO - 127.0.0.1 - - [19/Feb/2026 08:49:25] "GET /api/status HTTP/1.1" 200 -
+2026-02-19 08:49:25,784 - INFO - Restarting WebSocket connections...
+2026-02-19 08:49:28,772 - INFO - Websocket connected
+2026-02-19 08:49:28,794 - INFO - Websocket connected
+2026-02-19 08:49:28,988 - ERROR - WebSocket error: fin=1 opcode=8 data=b'\x0f\xa1Login failed.'
+2026-02-19 08:49:28,989 - ERROR - fin=1 opcode=8 data=b'\x0f\xa1Login failed.' - goodbye
+2026-02-19 08:49:31,661 - INFO - Client disconnected
+2026-02-19 08:49:31,661 - INFO - 127.0.0.1 - - [19/Feb/2026 08:49:31] "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 200 -
+2026-02-19 08:49:33,991 - INFO - Restarting WebSocket connections...
+2026-02-19 08:49:36,991 - INFO - Websocket connected
+2026-02-19 08:49:37,008 - INFO - Websocket connected
+2026-02-19 08:49:37,213 - ERROR - WebSocket error: fin=1 opcode=8 data=b'\x0f\xa1Login failed.'
+2026-02-19 08:49:37,213 - ERROR - fin=1 opcode=8 data=b'\x0f\xa1Login failed.' - goodbye
+2026-02-19 08:49:42,214 - INFO - Restarting WebSocket connections...
+2026-02-19 08:49:45,236 - INFO - Websocket connected
+2026-02-19 08:49:45,246 - INFO - Websocket connected
+2026-02-19 08:49:45,476 - ERROR - WebSocket error: fin=1 opcode=8 data=b'\x0f\xa1Login failed.'
+2026-02-19 08:49:45,476 - ERROR - fin=1 opcode=8 data=b'\x0f\xa1Login failed.' - goodbye
+2026-02-19 08:49:58,803 - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+2026-02-19 08:49:58,809 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.0.2:5000
+2026-02-19 08:49:58,809 - INFO - [33mPress CTRL+C to quit[0m
+2026-02-19 08:49:59,386 - INFO - Product Info Updated for BTC-USDT-SWAP: ContractSize=0.01, LotSz=0.01
+2026-02-19 08:49:59,668 - INFO - Bot initialized and started (Mode: Passive)
+2026-02-19 08:50:00,442 - INFO - Websocket connected
+2026-02-19 08:50:00,473 - INFO - Websocket connected
+2026-02-19 08:50:00,662 - ERROR - WebSocket error: fin=1 opcode=8 data=b'\x0f\xa1Login failed.'
+2026-02-19 08:50:00,662 - ERROR - fin=1 opcode=8 data=b'\x0f\xa1Login failed.' - goodbye
+2026-02-19 08:50:05,663 - INFO - Restarting WebSocket connections...
+2026-02-19 08:50:08,679 - INFO - Websocket connected
+2026-02-19 08:50:08,794 - INFO - Websocket connected
+2026-02-19 08:50:08,888 - ERROR - WebSocket error: fin=1 opcode=8 data=b'\x0f\xa1Login failed.'
+2026-02-19 08:50:08,888 - ERROR - fin=1 opcode=8 data=b'\x0f\xa1Login failed.' - goodbye
+2026-02-19 08:50:13,889 - INFO - Restarting WebSocket connections...
+2026-02-19 08:50:16,856 - INFO - Websocket connected
+2026-02-19 08:50:16,860 - INFO - Websocket connected
+2026-02-19 08:50:17,068 - ERROR - WebSocket error: fin=1 opcode=8 data=b'\x0f\xa1Login failed.'
+2026-02-19 08:50:17,068 - ERROR - fin=1 opcode=8 data=b'\x0f\xa1Login failed.' - goodbye
+2026-02-19 08:50:22,069 - INFO - Restarting WebSocket connections...
+2026-02-19 08:50:25,015 - INFO - Websocket connected
+2026-02-19 08:50:25,052 - INFO - Websocket connected
+2026-02-19 08:50:25,270 - ERROR - WebSocket error: fin=1 opcode=8 data=b'\x0f\xa1Login failed.'
+2026-02-19 08:50:25,270 - ERROR - fin=1 opcode=8 data=b'\x0f\xa1Login failed.' - goodbye
+2026-02-19 08:50:30,271 - INFO - Restarting WebSocket connections...
+2026-02-19 08:50:33,062 - INFO - 127.0.0.1 - - [19/Feb/2026 08:50:33] "GET /login HTTP/1.1" 200 -
+2026-02-19 08:50:33,231 - INFO - Websocket connected
+2026-02-19 08:50:33,436 - INFO - Websocket connected
+2026-02-19 08:50:33,648 - ERROR - WebSocket error: fin=1 opcode=8 data=b'\x0f\xa1Login failed.'
+2026-02-19 08:50:33,648 - ERROR - fin=1 opcode=8 data=b'\x0f\xa1Login failed.' - goodbye
+2026-02-19 08:50:34,235 - INFO - 127.0.0.1 - - [19/Feb/2026 08:50:34] "[32mPOST /login HTTP/1.1[0m" 302 -
+2026-02-19 08:50:34,253 - INFO - 127.0.0.1 - - [19/Feb/2026 08:50:34] "GET / HTTP/1.1" 200 -
+2026-02-19 08:50:34,277 - INFO - 127.0.0.1 - - [19/Feb/2026 08:50:34] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-02-19 08:50:34,279 - INFO - 127.0.0.1 - - [19/Feb/2026 08:50:34] "GET /static/js/app.js HTTP/1.1" 200 -
+2026-02-19 08:50:34,396 - INFO - 127.0.0.1 - - [19/Feb/2026 08:50:34] "GET /api/config HTTP/1.1" 200 -
+2026-02-19 08:50:34,401 - INFO - 127.0.0.1 - - [19/Feb/2026 08:50:34] "GET /api/status HTTP/1.1" 200 -
+2026-02-19 08:50:34,404 - INFO - Client connected: 4zrxQ4HNJNCFWw2cAAAB
+2026-02-19 08:50:34,454 - INFO - 127.0.0.1 - - [19/Feb/2026 08:50:34] "GET /api/status HTTP/1.1" 200 -
+2026-02-19 08:50:38,649 - INFO - Restarting WebSocket connections...
+2026-02-19 08:50:40,698 - INFO - Client disconnected
+2026-02-19 08:50:40,698 - INFO - 127.0.0.1 - - [19/Feb/2026 08:50:40] "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 200 -
+2026-02-19 08:50:41,621 - INFO - Websocket connected
+2026-02-19 08:50:41,662 - INFO - Websocket connected
+2026-02-19 08:50:41,837 - ERROR - WebSocket error: fin=1 opcode=8 data=b'\x0f\xa1Login failed.'
+2026-02-19 08:50:41,838 - ERROR - fin=1 opcode=8 data=b'\x0f\xa1Login failed.' - goodbye
+2026-02-19 08:50:46,839 - INFO - Restarting WebSocket connections...
+2026-02-19 08:50:49,806 - INFO - Websocket connected
+2026-02-19 08:50:49,842 - INFO - Websocket connected
+2026-02-19 08:50:50,060 - ERROR - WebSocket error: fin=1 opcode=8 data=b'\x0f\xa1Login failed.'
+2026-02-19 08:50:50,061 - ERROR - fin=1 opcode=8 data=b'\x0f\xa1Login failed.' - goodbye
+2026-02-19 08:50:55,061 - INFO - Restarting WebSocket connections...
+2026-02-19 08:50:57,998 - INFO - Websocket connected
+2026-02-19 08:50:58,010 - INFO - Websocket connected
+2026-02-19 08:50:58,204 - ERROR - WebSocket error: fin=1 opcode=8 data=b'\x0f\xa1Login failed.'
+2026-02-19 08:50:58,204 - ERROR - fin=1 opcode=8 data=b'\x0f\xa1Login failed.' - goodbye
+2026-02-19 08:51:03,205 - INFO - Restarting WebSocket connections...
+2026-02-19 08:51:06,219 - INFO - Websocket connected
+2026-02-19 08:51:06,230 - INFO - Websocket connected
+2026-02-19 08:51:06,449 - ERROR - WebSocket error: fin=1 opcode=8 data=b'\x0f\xa1Login failed.'
+2026-02-19 08:51:06,449 - ERROR - fin=1 opcode=8 data=b'\x0f\xa1Login failed.' - goodbye
