@@ -54,6 +54,8 @@ class AccountManager:
             }
             self.engine.log(f"Product Info Updated for {symbol}: ContractSize={self.engine.product_info['contractSize']}, LotSz={self.engine.product_info['qtyStepSize']}")
             return True
+        else:
+            self.engine.log(f"Failed to fetch product info for {symbol}. Check API connectivity.", level="error")
         return False
 
     def sync_account_data(self):

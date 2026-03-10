@@ -11,6 +11,8 @@ class OrderManager:
 
     def reset(self):
         self.pending_entry_ids = set()
+        self.order_contexts = {} # ordId -> context
+        self.order_fills = {}    # ordId -> total filled qty
         self.position_exit_orders = {'long': {}, 'short': {}}
         self.open_trades = []
         self.batch_counter = 0
@@ -42,7 +44,7 @@ class OrderManager:
         return float(f"{rounded:.{precision}f}")
 
     def place_order(self, symbol, side, qty, price=None, order_type="Market",
-                    reduce_only=False, stop_loss_price=None, take_profit_price=None, posSide=None, verbose=True):
+                    reduce_only=False, stop_loss_price=None, take_profit_price=None, posSide=None, verbose=True, context=None):
         try:
             path = "/api/v5/trade/order"
 
@@ -65,8 +67,21 @@ class OrderManager:
                 "sz": f"{qty:.{q_prec}f}" if q_prec > 0 else str(int(qty))
             }
 
-            if self.config.get('okx_pos_mode') == 'long_short_mode' and posSide:
+            # Determine correct posSide based on account mode
+            # OKX V5:
+            # - long_short_mode (Hedge): posSide must be 'long' or 'short'.
+            # - net_mode (One-way): posSide should be 'net' or omitted.
+            if posSide in ['long', 'short', 'net']:
                 body["posSide"] = posSide
+            else:
+                mode = self.config.get('okx_pos_mode', 'net_mode')
+                if mode == 'long_short_mode':
+                    # Determine from trade side if not specified
+                    body["posSide"] = self.config.get('direction', 'long')
+                    if body["posSide"] == 'both':
+                        body["posSide"] = 'long' if side.lower() == 'buy' else 'short'
+                else:
+                    body["posSide"] = "net"
 
             if order_type.lower() == "limit" and price is not None:
                 price = self._round_to_step(price, p_step)
@@ -92,10 +107,15 @@ class OrderManager:
             if res and res.get('code') == '0':
                 data = res.get('data', [{}])[0]
                 oid = data.get('ordId')
+                if oid and context:
+                    self.order_contexts[oid] = context
+
                 if not reduce_only and oid:
                     with self.engine.lock:
                         # Optimistic update for UI responsiveness and capital management
-                        self.pending_entry_ids.add(oid)
+                        if context == 'loop':
+                            self.pending_entry_ids.add(oid)
+
                         new_order = {
                             'id': oid,
                             'type': side.upper(),
@@ -164,7 +184,8 @@ class OrderManager:
             tp, sl = self._calculate_tpsl_prices(side, price)
             # Use verbose=False to suppress individual logs, we'll log the batch instead
             if self.place_order(self.config['symbol'], "buy" if side == 'long' else "sell", qty, price,
-                                order_type="Limit", posSide=side, take_profit_price=tp, stop_loss_price=sl, verbose=False):
+                                order_type="Limit", posSide=side, take_profit_price=tp, stop_loss_price=sl,
+                                verbose=False, context='loop'):
                 placed_count += 1
                 total_qty += qty
 

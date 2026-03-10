@@ -23,7 +23,7 @@ class TradingBotEngine:
         self.is_running = False
         self.stop_event = threading.Event()
         self.console_logs = deque(maxlen=1000)
-        self.product_info = {'contractSize': 1.0, 'lotSz': '1', 'tickSz': '0.01', 'pricePrecision': 2, 'qtyPrecision': 2, 'qtyStepSize': 1.0, 'minOrderQty': 0.01}
+        self.product_info = {'is_loaded': False, 'contractSize': 1.0, 'lotSz': '1', 'tickSz': '0.01', 'pricePrecision': 2, 'qtyPrecision': 2, 'qtyStepSize': 1.0, 'minOrderQty': 0.01}
         self.latest_trade_price = 0.0
         self.total_trades_count = 0
         self.last_emit_time = 0
@@ -31,7 +31,6 @@ class TradingBotEngine:
         self.current_take_profit = {'long': 0.0, 'short': 0.0}
         self.current_stop_loss = {'long': 0.0, 'short': 0.0}
         self._should_update_tpsl = False
-        self.last_add_price = 0.0
         self.account_balance = 0.0
         self.total_equity = 0.0
         self.available_balance = 0.0
@@ -76,6 +75,8 @@ class TradingBotEngine:
     @property
     def cached_unrealized_pnl(self): return self.position_manager.cached_unrealized_pnl
     @property
+    def position_upl(self): return self.position_manager.position_upl
+    @property
     def open_trades(self): return self.order_manager.open_trades
     @property
     def used_amount_notional(self):
@@ -104,7 +105,16 @@ class TradingBotEngine:
         leverage = safe_float(self.config.get('leverage', 1), 1.0)
         return self.max_allowed_display * leverage
     @property
-    def net_profit(self): return self.cached_unrealized_pnl
+    def net_profit(self):
+        # Sum of net_pnl for all active positions (UPL - Fees - Cycle Losses)
+        total = 0.0
+        for side in ['long', 'short']:
+            if self.position_manager.in_position[side]:
+                upl = self.position_manager.position_upl.get(side, 0.0)
+                fees = self.position_manager.current_entry_fees.get(side, 0.0)
+                loss = self.position_manager.realized_loss_this_cycle.get(side, 0.0)
+                total += (upl - fees - loss)
+        return total
     @property
     def daily_reports(self): return self.account_manager.daily_reports
     @property
@@ -184,6 +194,8 @@ class TradingBotEngine:
 
                 # 1. Background Tasks (Silent syncs)
                 if self.monitoring_tick % 15 == 0:
+                    if not self.product_info.get('is_loaded'):
+                        self.account_manager.fetch_product_info(self.config['symbol'])
                     self.account_manager.sync_account_data()
                     self.position_manager.sync_positions()
                     self.indicator_manager.fetch_historical_data(self.config['symbol'], self.config.get('candlestick_timeframe', '1m'))
@@ -237,6 +249,7 @@ class TradingBotEngine:
         if 'data' in msg:
             channel = msg.get('arg', {}).get('channel', '')
             data = msg.get('data', [])
+            action = msg.get('action', '')
             if channel == 'tickers' and data:
                 price = safe_float(data[0].get('last'))
                 if price > 0:
@@ -247,7 +260,7 @@ class TradingBotEngine:
                         self.auto_cal_manager.check_auto_add()
                     self._emit_socket_updates(throttle=True)
             elif channel == 'positions' and data:
-                self.position_manager.process_positions(data)
+                self.position_manager.process_positions(data, is_snapshot=(action == 'snapshot'))
                 self._emit_socket_updates()
             elif channel == 'account' and data:
                 for d in data[0].get('details', []):
@@ -261,6 +274,28 @@ class TradingBotEngine:
                     ord_id = o.get('ordId')
                     raw_side = o.get('posSide', 'net')
                     sz = safe_float(o.get('sz'))
+                    acc_fill = safe_float(o.get('accFillSz', 0))
+                    prev_fill = self.order_manager.order_fills.get(ord_id, 0.0)
+                    fill_delta = acc_fill - prev_fill
+                    state = o.get('state')
+
+                    # Track loop quantity based on order context
+                    context = self.order_manager.order_contexts.get(ord_id)
+                    if context == 'loop' and fill_delta > 0:
+                        # Update tracked fill size
+                        self.order_manager.order_fills[ord_id] = acc_fill
+
+                        # Determine if this order is opening or closing
+                        side = o.get('side') # buy/sell
+                        pos_side_key = self.position_manager._map_side(raw_side, qty=(sz if side == 'buy' else -sz))
+
+                        # If buy for long or sell for short, it's opening/adding
+                        is_adding = (side == 'buy' and pos_side_key == 'long') or (side == 'sell' and pos_side_key == 'short')
+
+                        delta = fill_delta if is_adding else -fill_delta
+                        self.position_manager.update_loop_qty(pos_side_key, delta)
+                        self.log(f"Loop Qty Updated: {pos_side_key} {delta:+.4f} (Context: {context})", level="debug")
+
                     fee = safe_float(o.get('fillFee', 0))
                     if fee != 0: self.position_manager.add_fee(fee, raw_side, qty=sz)
                     pnl = safe_float(o.get('fillPnl', 0))
@@ -273,15 +308,6 @@ class TradingBotEngine:
 
         fee_pct = self.config.get('trade_fee_percentage', 0.08) / 100.0
 
-        # Calculate Required Contracts for Need Add display
-        mkt = self.latest_trade_price
-        ct_size = self.product_info.get('contractSize', 1.0)
-        need_add_qty_profit = 0.0
-        need_add_qty_zero = 0.0
-        if mkt > 0 and ct_size > 0:
-            need_add_qty_profit = self.need_add_usdt_profit_target / (mkt * ct_size)
-            need_add_qty_zero = self.need_add_usdt_above_zero / (mkt * ct_size)
-
         payload = {
             'total_trades': self.total_trades_count, 'total_capital': self.total_equity,
             'total_capital_2nd': self.total_capital_2nd,
@@ -291,12 +317,15 @@ class TradingBotEngine:
             'size_amount': self.size_amount,
             'net_profit': self.net_profit, 'in_position': self.in_position,
             'position_qty': self.position_qty, 'position_entry_price': self.position_entry_price,
+            'position_upl': self.position_upl,
+            'position_net_pnl': {
+                'long': self.position_upl.get('long', 0.0) - self.position_manager.current_entry_fees.get('long', 0.0) - self.position_manager.realized_loss_this_cycle.get('long', 0.0),
+                'short': self.position_upl.get('short', 0.0) - self.position_manager.current_entry_fees.get('short', 0.0) - self.position_manager.realized_loss_this_cycle.get('short', 0.0)
+            },
             'position_liq': self.position_manager.position_liq,
             'daily_reports': self.daily_reports,
             'need_add_usdt': self.need_add_usdt_profit_target,
             'need_add_above_zero': self.need_add_usdt_above_zero,
-            'need_add_qty_profit': need_add_qty_profit,
-            'need_add_qty_zero': need_add_qty_zero,
             'running': self.is_running,
             'trade_fees': self.trade_fees, 'net_trade_profit': self.net_trade_profit,
             'used_fees': sum(self.position_manager.current_entry_fees.values()),
@@ -325,13 +354,17 @@ class TradingBotEngine:
                 if in_p:
                     qty = abs(self.position_qty[s])
                     if qty > 0:
-                        self.log(f"Closing {s} position: {qty} contracts", level="info")
+                        # Use the actual posSide from OKX for this position to ensure we can close manual trades
+                        pos_detail = self.position_manager.position_details.get(s, {})
+                        actual_pos_side = pos_detail.get('posSide', 'net')
+
+                        self.log(f"Closing {s} position: {qty} contracts (posSide: {actual_pos_side})", level="info")
                         self.order_manager.place_order(
                             self.config['symbol'],
                             "sell" if s == "long" else "buy",
                             qty,
                             order_type="Market",
-                            posSide=s,
+                            posSide=actual_pos_side,
                             reduce_only=True
                         )
 
@@ -361,8 +394,8 @@ class TradingBotEngine:
             self.position_manager.reset_session_metrics()
             if old.get('symbol') != new_config.get('symbol'):
                 self.account_manager.fetch_product_info(new_config['symbol'])
-                self.auto_cal_manager.auto_add_step_count = 0
-                self.last_add_price = 0.0
+                self.auto_cal_manager.auto_add_step_count = {'long': 0, 'short': 0}
+                self.auto_cal_manager.last_add_price = {'long': 0.0, 'short': 0.0}
             self.ws_handler.restart()
         return {'success': True}
 

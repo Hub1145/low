@@ -23,6 +23,8 @@ class PositionManager:
         self.position_liq = {'long': 0.0, 'short': 0.0}
         self.position_details = {'long': {}, 'short': {}}
         self.position_notional = {'long': 0.0, 'short': 0.0}
+        self.position_upl = {'long': 0.0, 'short': 0.0}
+        self.loop_qty = {'long': 0.0, 'short': 0.0}
         self.session_baseline_qty = {'long': 0.0, 'short': 0.0}
         self.baseline_initialized = False
         self.cached_active_positions_count = 0
@@ -33,16 +35,13 @@ class PositionManager:
         self.realized_loss_this_cycle = {'long': 0.0, 'short': 0.0}
 
     def process_positions(self, positions_data, is_snapshot=True):
-        temp_active_count = 0
-        temp_pos_notional = 0.0
-        temp_unrealized_pnl = 0.0
-        temp_used_notional = 0.0
         target_symbol = self.config['symbol'].strip().upper()
         found_sides = set()
         contract_size = safe_float(self.engine.product_info.get('contractSize', 1.0))
 
         with self.engine.lock:
             if not self.baseline_initialized and is_snapshot:
+                # We initialize baseline from the first set of positions we receive
                 for pos in positions_data:
                     if pos.get('instId', '').strip().upper() == target_symbol:
                         q = abs(safe_float(pos.get('pos')))
@@ -50,7 +49,7 @@ class PositionManager:
                             s_key = self._map_side(pos.get('posSide', 'net'), qty=safe_float(pos.get('pos')))
                             self.session_baseline_qty[s_key] = q
                 self.baseline_initialized = True
-                self.engine.log(f"Baseline initialized: Long={self.session_baseline_qty['long']}, Short={self.session_baseline_qty['short']} contracts (Manual positions ignored in used margin)")
+                self.engine.log(f"Baseline initialized: Long={self.session_baseline_qty['long']}, Short={self.session_baseline_qty['short']} contracts")
 
             prev_qtys = {k: v for k, v in self.position_qty.items()}
             for pos in positions_data:
@@ -58,30 +57,29 @@ class PositionManager:
                     qty_raw = safe_float(pos.get('pos'))
                     if qty_raw == 0 and is_snapshot: continue
                     side_key = self._map_side(pos.get('posSide', 'net'), qty=qty_raw)
+
                     if qty_raw != 0:
                         found_sides.add(side_key)
                         mkt_px = self.engine.latest_trade_price if self.engine.latest_trade_price else safe_float(pos.get('avgPx'))
                         side_notional = abs(qty_raw) * mkt_px * contract_size
-                        self.position_notional[side_key] = side_notional
-                        temp_pos_notional += side_notional
-                        temp_unrealized_pnl += safe_float(pos.get('upl', '0'))
-                        temp_active_count += 1
-
-                        # Session margin tracking (consistent whether running or stopped)
-                        session_qty = max(0, abs(qty_raw) - self.session_baseline_qty.get(side_key, 0.0))
-                        temp_used_notional += session_qty * mkt_px * contract_size
-
-                        new_qty = qty_raw
-                        if abs(new_qty - prev_qtys.get(side_key, 0.0)) > 1e-6:
-                            if abs(new_qty) > abs(prev_qtys.get(side_key, 0.0)):
-                                self.engine.total_trades_count += 1
 
                         self.in_position[side_key] = True
+                        self.position_qty[side_key] = qty_raw
                         self.position_entry_price[side_key] = safe_float(pos.get('avgPx'))
-                        self.position_qty[side_key] = new_qty
+                        self.position_notional[side_key] = side_notional
+                        self.position_upl[side_key] = safe_float(pos.get('upl', '0'))
                         self.position_liq[side_key] = safe_float(pos.get('liqp', '0'))
                         self.position_details[side_key] = pos
 
+                        # Loop margin tracking: cap loop_qty by current actual position
+                        self.loop_qty[side_key] = min(self.loop_qty[side_key], abs(qty_raw))
+
+                        if abs(qty_raw - prev_qtys.get(side_key, 0.0)) > 1e-6:
+                            if abs(qty_raw) > abs(prev_qtys.get(side_key, 0.0)):
+                                self.engine.total_trades_count += 1
+                            self.engine.log(f"Position Detected: {side_key.upper()} Qty={qty_raw}", level="debug")
+
+            # Handle closures
             for s in ['long', 'short']:
                 if is_snapshot:
                     if s not in found_sides and self.in_position[s]: self._handle_closure(s)
@@ -91,10 +89,21 @@ class PositionManager:
                             self._handle_closure(s)
                             break
 
-            self.cached_active_positions_count = temp_active_count
-            self.cached_pos_notional = temp_pos_notional
-            self.cached_unrealized_pnl = temp_unrealized_pnl
-            self.used_amount_notional = temp_used_notional
+            # Calculate Global Totals from ALL tracked positions (prevents flickering during incremental updates)
+            self.cached_active_positions_count = 0
+            self.cached_pos_notional = 0.0
+            self.cached_unrealized_pnl = 0.0
+            self.used_amount_notional = 0.0
+
+            for side in ['long', 'short']:
+                if self.in_position[side]:
+                    self.cached_active_positions_count += 1
+                    self.cached_pos_notional += self.position_notional[side]
+                    self.cached_unrealized_pnl += self.position_upl[side]
+
+                    # Recalculate used_amount_notional based on latest loop_qty and price
+                    mkt_px = self.engine.latest_trade_price if self.engine.latest_trade_price else self.position_entry_price[side]
+                    self.used_amount_notional += self.loop_qty[side] * mkt_px * contract_size
 
     def _handle_closure(self, s):
         self.engine.log(f"Position Detected Closed: {s.upper()}", level="info")
@@ -102,7 +111,9 @@ class PositionManager:
         self.position_qty[s] = 0.0
         self.position_entry_price[s] = 0.0
         self.position_notional[s] = 0.0
+        self.position_upl[s] = 0.0
         self.position_details[s] = {}
+        self.loop_qty[s] = 0.0
         self.engine.current_take_profit[s] = 0.0
         self.engine.current_stop_loss[s] = 0.0
         # Reset side-specific cycle metrics
@@ -118,11 +129,18 @@ class PositionManager:
             if self.in_position[side]:
                 qty = abs(self.position_qty[side])
                 entry = self.position_entry_price[side]
-                if side == 'long': temp_upl += (current_price - entry) * qty * contract_size
-                else: temp_upl += (entry - current_price) * qty * contract_size
+                upl = 0.0
+                if side == 'long': upl = (current_price - entry) * qty * contract_size
+                else: upl = (entry - current_price) * qty * contract_size
+
+                self.position_upl[side] = upl
+                temp_upl += upl
+
                 side_notional = qty * current_price * contract_size
                 self.position_notional[side] = side_notional
                 temp_notional += side_notional
+            else:
+                self.position_upl[side] = 0.0
         self.cached_unrealized_pnl = temp_upl
         self.cached_pos_notional = temp_notional
 
@@ -139,6 +157,19 @@ class PositionManager:
         self.total_fees += abs(fee)
         side = self._map_side(raw_side, qty=qty)
         self.current_entry_fees[side] += abs(fee)
+
+    def update_loop_qty(self, side, delta):
+        with self.engine.lock:
+            self.loop_qty[side] = max(0.0, self.loop_qty[side] + delta)
+            # Re-sync used_amount_notional for UI
+            contract_size = safe_float(self.engine.product_info.get('contractSize', 1.0))
+
+            # Recalculate based on current prices
+            total_used = 0.0
+            for s in ['long', 'short']:
+                px = self.engine.latest_trade_price if self.engine.latest_trade_price else self.position_entry_price[s]
+                total_used += self.loop_qty[s] * px * contract_size
+            self.used_amount_notional = total_used
 
     def sync_positions(self):
         target_symbol = self.config['symbol'].strip().upper()

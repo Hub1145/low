@@ -1,6 +1,3 @@
-import eventlet
-eventlet.monkey_patch()
-
 from flask import Flask, render_template, request, jsonify, send_file, session, redirect, url_for, flash
 from flask_socketio import SocketIO, emit
 import json
@@ -8,6 +5,7 @@ import logging
 import os
 import functools
 import threading
+import time
 from logging.handlers import RotatingFileHandler
 from bot_engine import TradingBotEngine
 
@@ -29,7 +27,7 @@ logger.addHandler(info_handler)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SESSION_SECRET', 'dev-secret-key-change-in-production')
 
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet', ping_timeout=60, ping_interval=25)
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading', ping_timeout=60, ping_interval=25)
 
 config_file = 'config.json'
 login_file = 'login.json'
@@ -315,6 +313,7 @@ def get_status():
         'in_position': bot_engine.in_position,
         'position_entry_price': bot_engine.position_entry_price,
         'position_qty': bot_engine.position_qty,
+        'position_upl': bot_engine.position_upl,
         'position_liq': bot_engine.position_manager.position_liq,
         'current_take_profit': bot_engine.current_take_profit,
         'current_stop_loss': bot_engine.current_stop_loss,
@@ -322,16 +321,26 @@ def get_status():
             'long': {
                 'in': bot_engine.in_position.get('long', False),
                 'qty': bot_engine.position_qty.get('long', 0.0),
-                'price': bot_engine.position_entry_price.get('long', 0.0)
+                'upl': bot_engine.position_upl.get('long', 0.0),
+                'net_pnl': bot_engine.position_upl.get('long', 0.0) - bot_engine.position_manager.current_entry_fees.get('long', 0.0) - bot_engine.position_manager.realized_loss_this_cycle.get('long', 0.0),
+                'price': bot_engine.position_entry_price.get('long', 0.0),
+                'tp': bot_engine.current_take_profit.get('long', 0.0),
+                'sl': bot_engine.current_stop_loss.get('long', 0.0),
+                'liq': bot_engine.position_manager.position_liq.get('long', 0.0)
             },
             'short': {
                 'in': bot_engine.in_position.get('short', False),
                 'qty': bot_engine.position_qty.get('short', 0.0),
-                'price': bot_engine.position_entry_price.get('short', 0.0)
+                'upl': bot_engine.position_upl.get('short', 0.0),
+                'net_pnl': bot_engine.position_upl.get('short', 0.0) - bot_engine.position_manager.current_entry_fees.get('short', 0.0) - bot_engine.position_manager.realized_loss_this_cycle.get('short', 0.0),
+                'price': bot_engine.position_entry_price.get('short', 0.0),
+                'tp': bot_engine.current_take_profit.get('short', 0.0),
+                'sl': bot_engine.current_stop_loss.get('short', 0.0),
+                'liq': bot_engine.position_manager.position_liq.get('short', 0.0)
             }
         },
         'primary_in_position': any(bot_engine.in_position.values()),
-        'size_amount': bot_engine.used_amount_notional,
+        'size_amount': bot_engine.size_amount,
         'need_add_usdt': getattr(bot_engine, 'need_add_usdt_profit_target', 0.0),
         'need_add_above_zero': getattr(bot_engine, 'need_add_usdt_above_zero', 0.0),
         # Realized profit tracking
@@ -389,6 +398,11 @@ def handle_connect(auth=None):
             'in_position': bot_engine.in_position,
             'position_entry_price': bot_engine.position_entry_price,
             'position_qty': bot_engine.position_qty,
+            'position_upl': bot_engine.position_upl,
+            'position_net_pnl': {
+                'long': bot_engine.position_upl.get('long', 0.0) - bot_engine.position_manager.current_entry_fees.get('long', 0.0) - bot_engine.position_manager.realized_loss_this_cycle.get('long', 0.0),
+                'short': bot_engine.position_upl.get('short', 0.0) - bot_engine.position_manager.current_entry_fees.get('short', 0.0) - bot_engine.position_manager.realized_loss_this_cycle.get('short', 0.0)
+            },
             'position_liq': bot_engine.position_manager.position_liq,
             'current_take_profit': bot_engine.current_take_profit,
             'current_stop_loss': bot_engine.current_stop_loss
@@ -496,4 +510,4 @@ if __name__ == '__main__':
         bot_engine = TradingBotEngine(config_file, emit_to_client)
         bot_engine.start(passive_monitoring=True)
         
-    socketio.run(app, host='0.0.0.0', port=5000, debug=False, use_reloader=False, log_output=True)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=False, use_reloader=False, allow_unsafe_werkzeug=True)
